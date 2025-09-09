@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: identityhub-postgres-staging
+    environment:
+      POSTGRES_DB: identityhub_staging
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres_staging_password}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_staging_data:/var/lib/postgresql/data
+    networks:
+      - identityhub-staging
+    restart: unless-stopped
+
+  identityhub-api:
+    build: .
+    container_name: identityhub-api-staging
+    environment:
+      ASPNETCORE_ENVIRONMENT: Staging
+      DB_HOST: postgres
+      DB_NAME: identityhub_staging
+      DB_USER: postgres
+      DB_PASSWORD: ${DB_PASSWORD:-postgres_staging_password}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      SMTP_SERVER: ${SMTP_SERVER}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      FROM_EMAIL: ${FROM_EMAIL}
+    ports:
+      - "${API_PORT:-7080}:8080"
+    depends_on:
+      - postgres
+    networks:
+      - identityhub-staging
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: identityhub-redis-staging
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_staging_data:/data
+    networks:
+      - identityhub-staging
+    restart: unless-stopped
+
+volumes:
+  postgres_staging_data:
+  redis_staging_data:
+
+networks:
+  identityhub-staging:
+    driver: bridge
