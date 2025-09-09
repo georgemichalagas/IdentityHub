@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="..\IdentityHub.Api\Controllers\grpc\Protos\*.proto" GrpcServices="Client" />
+    <Protobuf Include="..\IdentityHub.Api\Controllers\Grpc\Protos\*.proto" GrpcServices="Client" />
   </ItemGroup>
 
 </Project>
