@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: build-and-test-on-pr
 
 on:
   push:
@@ -39,9 +39,29 @@ jobs:
       run: dotnet build --no-restore --configuration Release
       
     - name: Test
-      run: dotnet test --no-build --configuration Release --verbosity normal
+      run: |
+        dotnet test --no-build --configuration Release --verbosity normal \
+          /p:CollectCoverage=true \
+          /p:CoverletOutputFormat=cobertura \
+          /p:CoverletOutput=./TestResults/coverage.xml
       env:
         ConnectionStrings__DefaultConnection: "Host=localhost;Database=identityhub_test;Username=postgres;Password=postgres"
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: ./TestResults/coverage.xml
+    - name: Generate coverage summary
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      with:
+        filename: ./TestResults/coverage.xml
+        badge: true
+        format: markdown
+        output: ./TestResults/coverage-summary.md
+    - name: Post coverage comment to PR
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        path: ./TestResults/coverage-summary.md
         
     - name: Publish
       run: dotnet publish IdentityHub.Api/IdentityHub.Api.csproj --no-build --configuration Release --output ./publish
