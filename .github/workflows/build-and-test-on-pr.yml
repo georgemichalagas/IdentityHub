@@ -1,0 +1,101 @@
+name: build-and-test-on-pr
+
+on:
+  # push:
+  #   branches: [ main, develop ]
+  # pull_request:
+  #   branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: identityhub_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+      
+    - name: Test
+      run: |
+        dotnet test --no-build --configuration Release --verbosity normal \
+          /p:CollectCoverage=true \
+          /p:CoverletOutputFormat=cobertura \
+          /p:CoverletOutput=coverage.xml
+        mkdir -p coverage
+        find . -name coverage.xml -exec cp {} coverage/ \;
+      env:
+        ConnectionStrings__DefaultConnection: "Host=localhost;Database=identityhub_test;Username=postgres;Password=postgres"
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: coverage/*.xml
+    - name: Generate coverage summary
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      with:
+        filename: coverage/*.xml
+        badge: true
+        format: markdown
+        output: coverage/coverage-summary.md
+    - name: Post coverage comment to PR
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        path: coverage/coverage-summary.md
+        
+    - name: Publish
+      run: dotnet publish IdentityHub.Api/IdentityHub.Api.csproj --no-build --configuration Release --output ./publish
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: identityhub-api
+        path: ./publish
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/identityhub:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max

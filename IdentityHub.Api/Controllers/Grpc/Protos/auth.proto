@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+option csharp_namespace = "IdentityHub.Api.Controllers.Grpc.Protos";
+
+package auth;
+
+// Authentication service for validating tokens and sessions
+service AuthService {
+  // Validate JWT token
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+  
+  // Validate user credentials
+  rpc ValidateCredentials(ValidateCredentialsRequest) returns (ValidateCredentialsResponse);
+  
+  // Check user permissions
+  rpc CheckPermissions(CheckPermissionsRequest) returns (CheckPermissionsResponse);
+  
+  // Refresh token
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+}
+
+// Request messages
+message ValidateTokenRequest {
+  string token = 1;
+}
+
+message ValidateCredentialsRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message CheckPermissionsRequest {
+  string user_id = 1;
+  string resource = 2;
+  string action = 3;
+}
+
+message RefreshTokenRequest {
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+// Response messages
+message ValidateTokenResponse {
+  bool is_valid = 1;
+  string user_id = 2;
+  string email = 3;
+  repeated string roles = 4;
+  string message = 5;
+  int64 expires_at = 6;
+}
+
+message ValidateCredentialsResponse {
+  bool is_valid = 1;
+  string user_id = 2;
+  string message = 3;
+  UserInfo user_info = 4;
+}
+
+message CheckPermissionsResponse {
+  bool has_permission = 1;
+  string message = 2;
+}
+
+message RefreshTokenResponse {
+  bool success = 1;
+  string message = 2;
+  string access_token = 3;
+  string refresh_token = 4;
+  int64 expires_at = 5;
+}
+
+// Data types
+message UserInfo {
+  string id = 1;
+  string email = 2;
+  string first_name = 3;
+  string last_name = 4;
+  repeated string roles = 5;
+  bool is_active = 6;
+}
