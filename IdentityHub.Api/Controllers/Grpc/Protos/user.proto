@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+option csharp_namespace = "IdentityHub.Api.Controllers.Grpc.Protos";
+
+package user;
+
+// User service for managing user data
+service UserService {
+  // Get user by ID
+  rpc GetUser(GetUserRequest) returns (UserResponse);
+  
+  // Get user by email
+  rpc GetUserByEmail(GetUserByEmailRequest) returns (UserResponse);
+  
+  // Get multiple users
+  rpc GetUsers(GetUsersRequest) returns (GetUsersResponse);
+  
+  // Update user profile
+  rpc UpdateUser(UpdateUserRequest) returns (UserResponse);
+  
+  // Check if user exists
+  rpc UserExists(UserExistsRequest) returns (UserExistsResponse);
+  
+  // Get user roles
+  rpc GetUserRoles(GetUserRolesRequest) returns (GetUserRolesResponse);
+}
+
+// Request messages
+message GetUserRequest {
+  string user_id = 1;
+}
+
+message GetUserByEmailRequest {
+  string email = 1;
+}
+
+message GetUsersRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string search_term = 3;
+  bool include_inactive = 4;
+}
+
+message UpdateUserRequest {
+  string user_id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string phone_number = 4;
+  string profile_picture_url = 5;
+  bool is_active = 6;
+}
+
+message UserExistsRequest {
+  string email = 1;
+}
+
+message GetUserRolesRequest {
+  string user_id = 1;
+}
+
+// Response messages
+message UserResponse {
+  bool success = 1;
+  string message = 2;
+  UserData user = 3;
+}
+
+message GetUsersResponse {
+  bool success = 1;
+  string message = 2;
+  repeated UserData users = 3;
+  int32 total_count = 4;
+  int32 page = 5;
+  int32 page_size = 6;
+}
+
+message UserExistsResponse {
+  bool exists = 1;
+}
+
+message GetUserRolesResponse {
+  bool success = 1;
+  string message = 2;
+  repeated string roles = 3;
+}
+
+// Data types
+message UserData {
+  string id = 1;
+  string email = 2;
+  string username = 3;
+  string first_name = 4;
+  string last_name = 5;
+  string phone_number = 6;
+  string profile_picture_url = 7;
+  bool is_active = 8;
+  bool email_confirmed = 9;
+  string created_at = 10;
+  string updated_at = 11;
+}
