@@ -1,5 +1,5 @@
 using FluentAssertions;
-using IdentityHub.Api.DTOs;
+using IdentityHub.Api.Controllers.Http.Dtos;
 using IdentityHub.Tests.Infrastructure;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Net;
