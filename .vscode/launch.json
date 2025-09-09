@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Tests",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceFolder}/IdentityHub.Tests/bin/Debug/net8.0/IdentityHub.Tests.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/IdentityHub.Tests",
+            "stopAtEntry": false,
+            "console": "internalConsole",
+            "justMyCode": false
+        },
+        {
+            "name": "Debug API",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "${workspaceFolder}/IdentityHub.Api/bin/Debug/net8.0/IdentityHub.Api.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/IdentityHub.Api",
+            "stopAtEntry": false,
+            "console": "internalConsole",
+            "preLaunchTask": "build-api"
+        }
+    ]
+}
